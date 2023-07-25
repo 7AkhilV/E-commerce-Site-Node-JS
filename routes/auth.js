@@ -1,5 +1,5 @@
 const express = require("express");
-const { body, validationResult } = require("express-validator");
+const { body } = require("express-validator");
 
 const authController = require("../controllers/auth");
 const User = require("../models/user");
@@ -15,16 +15,12 @@ router.post(
   [
     body("email")
       .isEmail()
-      .withMessage("Invalid Email")
-      .custom((value, { req }) => {
-        return User.findOne({ email: value }).then((user) => {
-          if (!user) {
-            return Promise.reject("Invalid email ");
-          }
-        });
-      })
+      .withMessage("Please enter a valid email address.")
       .normalizeEmail(),
-    body("password").isLength({ min: 5 }).withMessage("Incorrect Password").trim(),
+    body("password", "Password has to be valid.")
+      .isLength({ min: 5 })
+      .isAlphanumeric()
+      .trim(),
   ],
   authController.postLogin
 );
@@ -32,13 +28,15 @@ router.post(
 router.post(
   "/signup",
   [
-    // valdiating email and password for sign up
     body("email")
       .isEmail()
-      .withMessage("Enter a valid e-mail")
+      .withMessage("Please enter a valid email.")
       .custom((value, { req }) => {
+        // if (value === 'test@test.com') {
+        //   throw new Error('This email address if forbidden.');
+        // }
+        // return true;
         return User.findOne({ email: value }).then((userDoc) => {
-          //async validation
           if (userDoc) {
             return Promise.reject(
               "E-Mail exists already, please pick a different one."
@@ -47,15 +45,21 @@ router.post(
         });
       })
       .normalizeEmail(),
-    body("password")
+    body(
+      "password",
+      "Please enter a password with only numbers and text and at least 5 characters."
+    )
       .isLength({ min: 5 })
-      .withMessage("Password must be at least 5 characters long").trim(),
-    body("confirmPassword").custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error("Password has to match");
-      }
-      return true;
-    }).trim(),
+      .isAlphanumeric()
+      .trim(),
+    body("confirmPassword")
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error("Passwords have to match!");
+        }
+        return true;
+      }),
   ],
   authController.postSignup
 );

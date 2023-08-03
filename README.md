@@ -44,7 +44,7 @@ Each route has its own controller that interacts with the models and renders the
 
 Set up environment variables.
 
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=your_mongodb_connection_string ,
 STRIPE_KEY=your_stripe_api_key
 
 ### Usage

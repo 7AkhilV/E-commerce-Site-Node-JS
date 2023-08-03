@@ -17,7 +17,7 @@ const orderSchema = new Schema({
     userId: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: "User",
+      ref: "User", // Reference to the "User" model
     },
   },
 });

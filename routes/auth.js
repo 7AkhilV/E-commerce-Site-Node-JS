@@ -6,10 +6,13 @@ const User = require("../models/user");
 
 const router = express.Router();
 
+// Route to render the "Login" page - HTTP GET request
 router.get("/login", authController.getLogin);
 
+// Route to render the "Signup" page - HTTP GET request
 router.get("/signup", authController.getSignup);
 
+// Route to handle login - HTTP POST request
 router.post(
   "/login",
   [
@@ -25,6 +28,7 @@ router.post(
   authController.postLogin
 );
 
+// Route to handle user signup - HTTP POST request
 router.post(
   "/signup",
   [
@@ -64,14 +68,19 @@ router.post(
   authController.postSignup
 );
 
+// Route to handle user logout - HTTP POST request
 router.post("/logout", authController.postLogout);
 
+// Route to render the "Reset Password" page - HTTP GET request
 router.get("/reset", authController.getReset);
 
+// Route to handle password reset request - HTTP POST request
 router.post("/reset", authController.postReset);
 
+// Route to render the "New Password" page with a reset token - HTTP GET request
 router.get("/reset/:token", authController.getNewPassword);
 
+// Route to handle setting a new password after reset - HTTP POST request
 router.post("/new-password", authController.postNewPassword);
 
 module.exports = router;

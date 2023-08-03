@@ -16,7 +16,9 @@ const transporter = nodemailer.createTransport(
   })
 );
 
+// Controller function for rendering the login page
 exports.getLogin = (req, res, next) => {
+  // Fetch and display any error messages from flash storage
   let message = req.flash("error");
   if (message.length > 0) {
     message = message[0];
@@ -35,7 +37,9 @@ exports.getLogin = (req, res, next) => {
   });
 };
 
+// Controller function for rendering the signup page
 exports.getSignup = (req, res, next) => {
+  // Fetch and display any error messages from flash storage
   let message = req.flash("error");
   if (message.length > 0) {
     message = message[0];
@@ -55,10 +59,13 @@ exports.getSignup = (req, res, next) => {
   });
 };
 
+// Controller function for processing login form data
 exports.postLogin = (req, res, next) => {
+  // Extract email and password from the request
   const email = req.body.email;
   const password = req.body.password;
 
+  // Validate user input using express-validator
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).render("auth/login", {
@@ -73,8 +80,10 @@ exports.postLogin = (req, res, next) => {
     });
   }
 
+  // Find the user in the database based on the provided email
   User.findOne({ email: email })
     .then((user) => {
+      // Check if the user exists in the database
       if (!user) {
         return res.status(422).render("auth/login", {
           path: "/login",
@@ -87,9 +96,11 @@ exports.postLogin = (req, res, next) => {
           validationErrors: [],
         });
       }
+      // Compare the provided password with the hashed password stored in the database
       bcrypt
         .compare(password, user.password)
         .then((doMatch) => {
+          // If the passwords match, create a session and redirect to the homepage
           if (doMatch) {
             req.session.isLoggedIn = true;
             req.session.user = user;
@@ -98,6 +109,7 @@ exports.postLogin = (req, res, next) => {
               res.redirect("/");
             });
           }
+          // If the passwords don't match, display an error message on the login page
           return res.status(422).render("auth/login", {
             path: "/login",
             pageTitle: "Login",
@@ -121,10 +133,13 @@ exports.postLogin = (req, res, next) => {
     });
 };
 
+// Controller function for processing signup form data
 exports.postSignup = (req, res, next) => {
+  // Extract email and password from the request
   const email = req.body.email;
   const password = req.body.password;
 
+  // Validate user input using express-validator
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors.array());
@@ -141,9 +156,11 @@ exports.postSignup = (req, res, next) => {
     });
   }
 
+  // Hash the password before saving it to the database
   bcrypt
     .hash(password, 12)
     .then((hashedPassword) => {
+      // Create a new user and save it to the database
       const user = new User({
         email: email,
         password: hashedPassword,
@@ -155,7 +172,7 @@ exports.postSignup = (req, res, next) => {
       res.redirect("/login");
       // return transporter.sendMail({
       //   to: email,
-      //   from: 'shop@node-complete.com',
+      //   from: '7akhilv@gmail.com',
       //   subject: 'Signup succeeded!',
       //   html: '<h1>You successfully signed up!</h1>'
       // });
@@ -167,14 +184,18 @@ exports.postSignup = (req, res, next) => {
     });
 };
 
+// Controller function for handling user logout
 exports.postLogout = (req, res, next) => {
+  // Destroy the session and redirect to the homepage
   req.session.destroy((err) => {
     console.log(err);
     res.redirect("/");
   });
 };
 
+// Controller function for rendering the reset password page
 exports.getReset = (req, res, next) => {
+  // Fetch and display any error messages from flash storage
   let message = req.flash("error");
   if (message.length > 0) {
     message = message[0];
@@ -188,7 +209,9 @@ exports.getReset = (req, res, next) => {
   });
 };
 
+// Controller function for handling password reset requests
 exports.postReset = (req, res, next) => {
+  // Generate a reset token and save it to the user in the database
   crypto.randomBytes(32, (err, buffer) => {
     if (err) {
       console.log(err);
@@ -207,15 +230,16 @@ exports.postReset = (req, res, next) => {
       })
       .then((result) => {
         res.redirect("/");
-        transporter.sendMail({
-          to: req.body.email,
-          from: "shop@node-complete.com",
-          subject: "Password reset",
-          html: `
-            <p>You requested a password reset</p>
-            <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
-          `,
-        });
+        // Send a password reset email to the user
+        // transporter.sendMail({
+        //   to: req.body.email,
+        //   from: "7akhilv@gmail.com",
+        //   subject: "Password reset",
+        //   html: `
+        //     <p>You requested a password reset</p>
+        //     <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
+        //   `,
+        // });
       })
       .catch((err) => {
         const error = new Error(err);
@@ -225,10 +249,13 @@ exports.postReset = (req, res, next) => {
   });
 };
 
+// Controller function for rendering the new password page
 exports.getNewPassword = (req, res, next) => {
+  // Fetch the reset token from the URL and find the user in the database
   const token = req.params.token;
   User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
     .then((user) => {
+      // Fetch and display any error messages from flash storage
       let message = req.flash("error");
       if (message.length > 0) {
         message = message[0];
@@ -250,12 +277,15 @@ exports.getNewPassword = (req, res, next) => {
     });
 };
 
+// Controller function for handling the new password submission
 exports.postNewPassword = (req, res, next) => {
+  // Extract the new password, user ID, and password token from the request
   const newPassword = req.body.password;
   const userId = req.body.userId;
   const passwordToken = req.body.passwordToken;
   let resetUser;
 
+// Find the user in the database based on the reset token and user ID
   User.findOne({
     resetToken: passwordToken,
     resetTokenExpiration: { $gt: Date.now() },
@@ -263,6 +293,7 @@ exports.postNewPassword = (req, res, next) => {
   })
     .then((user) => {
       resetUser = user;
+      // Hash the new password and save it to the user in the database
       return bcrypt.hash(newPassword, 12);
     })
     .then((hashedPassword) => {

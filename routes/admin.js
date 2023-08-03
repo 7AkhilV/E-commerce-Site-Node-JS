@@ -8,13 +8,13 @@ const isAuth = require("../middleware/is-auth");
 
 const router = express.Router();
 
-// /admin/add-product => GET
+// /admin/add-product => GET Route to render the "Add Product" page
 router.get("/add-product", isAuth, adminController.getAddProduct);
 
-// /admin/products => GET
+// /admin/products => GET Route to render the "Products" page
 router.get("/products", isAuth, adminController.getProducts);
 
-// /admin/add-product => POST
+// /admin/add-product => POST Route to add a product
 router.post(
   "/add-product",
   [
@@ -26,8 +26,10 @@ router.post(
   adminController.postAddProduct
 );
 
+// GET Route to render the "Edit Product" page
 router.get("/edit-product/:productId", isAuth, adminController.getEditProduct);
 
+// POST Route to edit a product
 router.post(
   "/edit-product",
   [
@@ -39,6 +41,7 @@ router.post(
   adminController.postEditProduct
 );
 
-router.post("/delete-product", isAuth, adminController.postDeleteProduct);
+// Route to delete a product - DELETE request
+router.delete("/product/:productId", isAuth, adminController.deleteProduct);
 
 module.exports = router;
